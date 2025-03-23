@@ -10,7 +10,7 @@ public class Solver
 	public double[] Solve(double[][] matrix, double[] freeMembers)
     {
         int n = matrix.Length; 
-        int m = matrix[0].Length; 
+        int m = matrix[0].Length;
         double[][] augmentedMatrix = new double[n][];
         for (int i = 0; i < n; i++)
         {
@@ -21,8 +21,15 @@ public class Solver
             }
             augmentedMatrix[i][m] = freeMembers[i];
         }
-        var rankMatrix = CalculateRank( ref matrix);
-        var rankAugmentedMatrix = CalculateRank(ref augmentedMatrix);
+        for(int row = 0; row<n; row++) 
+        {
+            if (matrix[row].All(x => x <= 1e-10) && freeMembers[row] >= 1e-10)
+            {
+                throw new NoSolutionException("No solution!");
+            }
+        }
+        var rankMatrix = CalculateRank( matrix);
+        var rankAugmentedMatrix = CalculateRank(augmentedMatrix);
         if (rankMatrix < rankAugmentedMatrix)
         {
             throw new NoSolutionException(matrix, freeMembers, augmentedMatrix);
@@ -33,7 +40,7 @@ public class Solver
             int pivotRow = -1;
             for (int row = 0; row < n; row++)
             {
-                if (!usedRows[row] && Math.Abs(augmentedMatrix[row][col]) > 0)
+                if (!usedRows[row] && Math.Abs(augmentedMatrix[row][col]) > 1e-10)
                 {
                     pivotRow = row;
                     break;
@@ -63,19 +70,17 @@ public class Solver
                 }
             }
         }
-
         double[] solution = new double[m];
         for (int i = 0; i < m; i++)
         {
             solution[i] = 0; 
         }
-
         for (int row = n - 1; row >= 0; row--)
         {
             int col = -1;
             for (int j = 0; j < m; j++)
             {
-                if (Math.Abs(augmentedMatrix[row][j]) > 0)
+                if (Math.Abs(augmentedMatrix[row][j]) > 1e-10)
                 {
                     col = j;
                     break;
@@ -91,10 +96,9 @@ public class Solver
                 }
             }
         }
-
         return solution;
     }
-    static int CalculateRank(ref double[][] m)
+    static int CalculateRank( double[][] m)
     {
         var matrix = m.Select(row => row.ToArray()).ToArray();
         int rows = matrix.Length;
