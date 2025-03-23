@@ -10,7 +10,7 @@ public class Solver
 	public double[] Solve(double[][] matrix, double[] freeMembers)
     {
         int n = matrix.Length; 
-        int m = matrix[0].Length;
+        int m = n > 0 ? matrix[0].Length : 0;
         double[][] augmentedMatrix = new double[n][];
         for (int i = 0; i < n; i++)
         {
@@ -21,13 +21,7 @@ public class Solver
             }
             augmentedMatrix[i][m] = freeMembers[i];
         }
-        for(int row = 0; row<n; row++) 
-        {
-            if (matrix[row].All(x => x <= 1e-10) && freeMembers[row] >= 1e-10)
-            {
-                throw new NoSolutionException("No solution!");
-            }
-        }
+        
         var rankMatrix = CalculateRank( matrix);
         var rankAugmentedMatrix = CalculateRank(augmentedMatrix);
         if (rankMatrix < rankAugmentedMatrix)
@@ -68,6 +62,20 @@ public class Solver
                         augmentedMatrix[row][j] -= factor * augmentedMatrix[pivotRow][j];
                     }
                 }
+            }
+        }
+        var cnt = 0;
+        var flag = false;
+        for (int row = 0; row < n; row++)
+        {
+            for (int col = 0; col <= m; col++)
+            {
+                if (augmentedMatrix[row][col] <= 1e-10) cnt++;
+                else if (augmentedMatrix[row][col] >= 1e-10 && col == m) flag = true;
+            }
+            if (cnt == m && flag) 
+            {
+                throw new NoSolutionException(matrix, freeMembers, augmentedMatrix);
             }
         }
         double[] solution = new double[m];
